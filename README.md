@@ -106,6 +106,7 @@ which runs the upstream implementation and this port against the same inputs.
 | `sort`          | `boolean`                                 | `true`      | Sort entries by start date.                                  |
 | `bareYearEnd`   | `'legacy' \| 'december'`                  | `'legacy'`  | How to read a year-only end date. See above.                 |
 | `showDates`     | `boolean`                                 | `true`      | Render the date range next to each label.                    |
+| `flipLabels`    | `boolean`                                 | `true`      | Keep labels inside the timesheet. See below.                 |
 | `onBubbleClick` | `(bubble: Bubble, index: number) => void` | —           | Makes each row focusable and clickable.                      |
 | `className`     | `string`                                  | —           | Appended to the root class list.                             |
 | `style`         | `CSSProperties`                           | —           | Merged onto the root, after the generated custom properties. |
@@ -113,6 +114,25 @@ which runs the upstream implementation and this port against the same inputs.
 `min` and `max` bound the scale but only ever widen it: an entry outside the
 requested range pushes the range out rather than being clipped. Omit them and
 the range is derived entirely from `data`.
+
+## Label placement
+
+Each row's text sits to the right of its bubble, so a bubble near the end of the
+scale pushes its label past the right edge — where `timesheet.js` simply clips
+it. With `flipLabels` (on by default) the text is placed where it fits:
+
+1. to the right of the bubble, as usual;
+2. otherwise mirrored to the left of it, with the row pinned by its right edge
+   so the bubble itself does not move;
+3. otherwise — a bubble spanning most of the scale, with room on neither side —
+   on the roomier side, capped so the label ellipsises.
+
+Widths depend on the text, the font and the container, so this is measured from
+real layout after render and re-measured through a `ResizeObserver`. Flipping
+does not change what is measured, so the placement is stable. Rows placed on the
+left carry `data-flipped`, and every row's `title` always holds the full label.
+
+Set `flipLabels={false}` for the always-to-the-right layout of `timesheet.js`.
 
 ## Styling
 
@@ -143,8 +163,9 @@ Category names are slugified, so `type: 'On call'` reads
 Stable class names are attached alongside the generated ones:
 `.react-timesheet`, `.react-timesheet__scale`, `.react-timesheet__year`,
 `.react-timesheet__data`, `.react-timesheet__row`, `.react-timesheet__bubble`,
-`.react-timesheet__date`, `.react-timesheet__label`. Each row also carries
-`data-type` and `data-months`, and the root carries `data-theme` and
+`.react-timesheet__text`, `.react-timesheet__date`, `.react-timesheet__label`.
+Each row also carries `data-type`, `data-months` and — when its text sits to the
+left of the bubble — `data-flipped`. The root carries `data-theme` and
 `data-color-scheme`.
 
 ## Helpers
@@ -187,6 +208,9 @@ What differs is the surrounding component, not the arithmetic:
   percentages, so the timesheet fills its container.
 - **No fixed height.** The root grows with the number of entries instead of
   clipping at 292px.
+- **Labels stay inside.** Upstream draws every label to the right of its bubble
+  and clips whatever runs off the edge. See [above](#label-placement); set
+  `flipLabels={false}` to get the upstream behaviour.
 - **Sorted by default.** Upstream renders in input order; set `sort={false}` for
   that.
 - **Escaped labels.** Upstream builds rows with `innerHTML +=`, so a label

@@ -17,6 +17,7 @@ function Timesheet({
   sort = true,
   bareYearEnd = 'legacy',
   showDates = true,
+  flipLabels = true,
   onBubbleClick,
   className,
   style,
@@ -48,6 +49,7 @@ function Timesheet({
       <Bubbles
         bubbles={bubbles}
         showDates={showDates}
+        flipLabels={flipLabels}
         onBubbleClick={onBubbleClick}
       />
     </div>

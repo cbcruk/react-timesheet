@@ -110,6 +110,12 @@ export interface Props {
   bareYearEnd?: BareYearEnd
   /** Render the date range next to each label. Defaults to `true`. */
   showDates?: boolean
+  /**
+   * Draw a row's text to the left of its bubble when it would otherwise be
+   * clipped off the right edge. Defaults to `true`; set `false` for the
+   * always-to-the-right layout of `timesheet.js`.
+   */
+  flipLabels?: boolean
   /** Called when an entry is clicked or activated with the keyboard. */
   onBubbleClick?: (bubble: Bubble, index: number) => void
   className?: string

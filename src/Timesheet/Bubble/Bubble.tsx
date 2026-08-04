@@ -4,8 +4,16 @@ import { colorVar, slugify } from '../colors'
 import { Props } from './types'
 import * as styles from './style'
 
-function Bubble({ bubble, showDates = true, onClick }: Props) {
+const DEFAULT_PLACEMENT = { flipped: false } as const
+
+function Bubble({
+  bubble,
+  showDates = true,
+  placement = DEFAULT_PLACEMENT,
+  onClick,
+}: Props) {
   const { label, type, dateLabel, months, offset, width } = bubble
+  const { flipped, maxWidth } = placement
   const interactive = Boolean(onClick)
 
   function handleKeyDown(event: KeyboardEvent<HTMLLIElement>) {
@@ -24,11 +32,17 @@ function Bubble({ bubble, showDates = true, onClick }: Props) {
       className={cx(
         styles.ROW_CLASS,
         styles.wrapper,
+        flipped && styles.flipped,
         interactive && styles.clickable
       )}
-      style={{ left: `${offset}%` }}
+      // A flipped row is pinned by its right edge so the bubble still ends
+      // where it should; the text then runs leftward from the bubble.
+      style={
+        flipped ? { right: `${100 - offset - width}%` } : { left: `${offset}%` }
+      }
       data-type={type}
       data-months={months}
+      data-flipped={flipped ? '' : undefined}
       title={`${label} (${dateLabel})`}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -46,10 +60,14 @@ function Bubble({ bubble, showDates = true, onClick }: Props) {
           backgroundColor: `var(${colorVar(type)}, var(${colorVar('default')}))`,
         }}
       />
-      {showDates ? (
-        <span className={cx(styles.DATE_CLASS, styles.date)}>{dateLabel}</span>
-      ) : null}
-      <span className={cx(styles.LABEL_CLASS, styles.label)}>{label}</span>
+      <span className={cx(styles.TEXT_CLASS, styles.text)} style={{ maxWidth }}>
+        {showDates ? (
+          <span className={cx(styles.DATE_CLASS, styles.date)}>
+            {dateLabel}
+          </span>
+        ) : null}
+        <span className={cx(styles.LABEL_CLASS, styles.label)}>{label}</span>
+      </span>
     </li>
   )
 }
