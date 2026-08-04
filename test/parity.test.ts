@@ -107,21 +107,24 @@ describe('upstream fixture', () => {
 })
 
 describe('parity with timesheet.js', () => {
-  const STARTS = ['2002', '01/2002', '04/2002', '12/2002']
-  const MONTH_ENDS = [null, '01/2003', '04/2003', '12/2005']
-  const YEAR_ENDS = ['2002', '2003', '2005']
+  const STARTS = ['2002', '01/2002', '04/2002', '09/2002', '12/2002']
+  const ENDS = [
+    null,
+    '2002',
+    '2003',
+    '2005',
+    '01/2003',
+    '04/2003',
+    '12/2003',
+    '12/2005',
+  ]
 
-  it.each(
-    STARTS.flatMap((start) => MONTH_ENDS.map((end) => [start, end] as const))
-  )('matches month spans for %s to %s', (start, end) => {
-    expect(portMonths(start, end)).toBe(upstreamMonths(start, end))
-  })
-
-  it.each(
-    STARTS.flatMap((start) => YEAR_ENDS.map((end) => [start, end] as const))
-  )('matches %s to %s in legacy mode', (start, end) => {
-    expect(portMonths(start, end, 'legacy')).toBe(upstreamMonths(start, end))
-  })
+  it.each(STARTS.flatMap((start) => ENDS.map((end) => [start, end] as const)))(
+    'matches month spans for %s to %s',
+    (start, end) => {
+      expect(portMonths(start, end)).toBe(upstreamMonths(start, end))
+    }
+  )
 
   it.each([
     ['04/2002', '09/2003'],
@@ -160,7 +163,6 @@ describe('parity with timesheet.js', () => {
       min: 2002,
       max: 2005,
       sort: false,
-      bareYearEnd: 'legacy',
     })
 
     expect(actual.min).toBe(expected.year.min)
@@ -193,23 +195,24 @@ describe('parity with timesheet.js', () => {
   })
 })
 
-describe('the one deliberate divergence', () => {
-  // A bare end year is inclusive here and exclusive-across-years upstream.
+describe('bareYearEnd="december"', () => {
+  // The opt-in reading: a bare end year is inclusive, so it always means the
+  // whole of that year no matter where it appears.
   it.each([
     ['2002', '2003', 12, 24],
     ['2002', '2004', 24, 36],
     ['04/2002', '2003', 9, 21],
     ['12/2002', '2003', 1, 13],
   ] as const)(
-    '%s to %s is %i months upstream and %i by default',
+    '%s to %s is %i months upstream and %i in december mode',
     (start, end, legacy, december) => {
       expect(upstreamMonths(start, end)).toBe(legacy)
-      expect(portMonths(start, end, 'legacy')).toBe(legacy)
-      expect(portMonths(start, end)).toBe(december)
+      expect(portMonths(start, end)).toBe(legacy)
+      expect(portMonths(start, end, 'december')).toBe(december)
     }
   )
 
-  it('is the only divergence across the whole matrix', () => {
+  it('only ever differs on a bare end year in a later year', () => {
     const starts = ['2002', '01/2002', '04/2002', '09/2002', '12/2002']
     const ends = [
       null,
@@ -224,27 +227,18 @@ describe('the one deliberate divergence', () => {
 
     const divergent = starts.flatMap((start) =>
       ends
-        .filter((end) => portMonths(start, end) !== upstreamMonths(start, end))
-        .map((end) => `${start}->${end}`)
+        .filter(
+          (end) =>
+            portMonths(start, end, 'december') !== upstreamMonths(start, end)
+        )
+        .map((end) => end as string)
     )
 
-    // Every one of them has a bare year as the end date, and none is same-year.
-    for (const pair of divergent) {
-      const end = pair.split('->')[1]
+    expect(divergent.length).toBeGreaterThan(0)
 
+    for (const end of divergent) {
       expect(end).toMatch(/^\d{4}$/)
       expect(end).not.toBe('2002')
     }
-
-    expect(
-      starts.flatMap((start) =>
-        ends
-          .filter(
-            (end) =>
-              portMonths(start, end, 'legacy') !== upstreamMonths(start, end)
-          )
-          .map((end) => `${start}->${end}`)
-      )
-    ).toEqual([])
   })
 })

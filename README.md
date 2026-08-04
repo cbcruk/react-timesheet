@@ -65,45 +65,50 @@ Both the `timesheet.js` ordering and the ISO-ish ordering are accepted:
 | `YYYY-MM-DD` | `2002-09-17` | that month (day ignored) |
 
 Both ends of a range are inclusive, so `['2002-01', '2002-09', …]` is nine
-months long. A year-only start begins in January; a year-only end runs through
-December. An entry with no end date covers a single month, or a full year when
-its start has no month.
+months long. A year-only start begins in January. An entry with no end date
+covers a single month, or a full year when its start has no month. A year-only
+_end_ is the one case with two possible readings — see
+[below](#year-only-end-dates).
 
 Anything else throws a `TypeError` with the offending value, rather than
 silently rendering a zero width bubble.
 
 ### Year-only end dates
 
-A bare end year is the one place this port does not agree with `timesheet.js`,
-and `bareYearEnd` selects which reading you get:
+A bare end year is the one place two readings are possible, and `bareYearEnd`
+selects between them:
 
-| `['2002-01', '2004', …]` | `bareYearEnd` | Months | Meaning                 |
-| ------------------------ | ------------- | ------ | ----------------------- |
-| default                  | `'december'`  | 36     | through December 2004   |
-| upstream                 | `'legacy'`    | 24     | up to the start of 2004 |
+| `bareYearEnd`          | `['2002-01', '2004', …]` | Meaning                 |
+| ---------------------- | ------------------------ | ----------------------- |
+| `'legacy'` _(default)_ | 24 months                | up to the start of 2004 |
+| `'december'`           | 36 months                | through December 2004   |
 
-`'legacy'` reproduces `timesheet.js` exactly — including its discontinuity,
-where `['04/2002', '2002']` and `['04/2002', '2003']` both measure 9 months, so
-a bare end year is inclusive within one year but exclusive across years. Both
-readings are locked in by [`test/parity.test.ts`](test/parity.test.ts), which
-runs the upstream implementation and this port against the same inputs.
+The default reproduces `timesheet.js` exactly, including its discontinuity:
+`['04/2002', '2002']` and `['04/2002', '2003']` both measure 9 months, so a bare
+end year is inclusive within one year but exclusive across years — which means
+an end year later than the start year contributes nothing beyond the years
+between them. `'december'` removes that wrinkle by making a bare year mean the
+whole of that year wherever it appears, at the cost of parity.
+
+Both readings are locked in by [`test/parity.test.ts`](test/parity.test.ts),
+which runs the upstream implementation and this port against the same inputs.
 
 ## Props
 
-| Prop            | Type                                      | Default      | Description                                                  |
-| --------------- | ----------------------------------------- | ------------ | ------------------------------------------------------------ |
-| `data`          | `TimesheetEntry[]`                        | —            | Entries to render.                                           |
-| `min`           | `number`                                  | from `data`  | First year of the scale.                                     |
-| `max`           | `number`                                  | from `data`  | Last year of the scale.                                      |
-| `colorScheme`   | `'default' \| 'alternative'`              | `'default'`  | Built-in palette.                                            |
-| `theme`         | `'dark' \| 'light'`                       | `'dark'`     | Background and text palette.                                 |
-| `colors`        | `Record<string, string>`                  | —            | Per-category color overrides, e.g. `{ lorem: '#09f' }`.      |
-| `sort`          | `boolean`                                 | `true`       | Sort entries by start date.                                  |
-| `bareYearEnd`   | `'december' \| 'legacy'`                  | `'december'` | How to read a year-only end date. See above.                 |
-| `showDates`     | `boolean`                                 | `true`       | Render the date range next to each label.                    |
-| `onBubbleClick` | `(bubble: Bubble, index: number) => void` | —            | Makes each row focusable and clickable.                      |
-| `className`     | `string`                                  | —            | Appended to the root class list.                             |
-| `style`         | `CSSProperties`                           | —            | Merged onto the root, after the generated custom properties. |
+| Prop            | Type                                      | Default     | Description                                                  |
+| --------------- | ----------------------------------------- | ----------- | ------------------------------------------------------------ |
+| `data`          | `TimesheetEntry[]`                        | —           | Entries to render.                                           |
+| `min`           | `number`                                  | from `data` | First year of the scale.                                     |
+| `max`           | `number`                                  | from `data` | Last year of the scale.                                      |
+| `colorScheme`   | `'default' \| 'alternative'`              | `'default'` | Built-in palette.                                            |
+| `theme`         | `'dark' \| 'light'`                       | `'dark'`    | Background and text palette.                                 |
+| `colors`        | `Record<string, string>`                  | —           | Per-category color overrides, e.g. `{ lorem: '#09f' }`.      |
+| `sort`          | `boolean`                                 | `true`      | Sort entries by start date.                                  |
+| `bareYearEnd`   | `'legacy' \| 'december'`                  | `'legacy'`  | How to read a year-only end date. See above.                 |
+| `showDates`     | `boolean`                                 | `true`      | Render the date range next to each label.                    |
+| `onBubbleClick` | `(bubble: Bubble, index: number) => void` | —           | Makes each row focusable and clickable.                      |
+| `className`     | `string`                                  | —           | Appended to the root class list.                             |
+| `style`         | `CSSProperties`                           | —           | Merged onto the root, after the generated custom properties. |
 
 `min` and `max` bound the scale but only ever widen it: an entry outside the
 requested range pushes the range out rather than being clipped. Omit them and
@@ -160,16 +165,15 @@ const { min, max, years, bubbles } = getBubbles(data, { min: 2002 })
 
 ## Differences from timesheet.js
 
-The layout maths is a faithful port. `test/parity.test.ts` runs the upstream
-implementation (vendored at `test/fixtures/timesheet.js`) side by side with this
-one, and month spans, start offsets, date labels, tuple arity, category
-defaults and scale widening all agree exactly. Upstream's own test vectors are
-asserted against the fixture too, so drift is caught rather than assumed away.
+The layout maths is a faithful port, and out of the box it computes exactly what
+`timesheet.js` computes. `test/parity.test.ts` runs the upstream implementation
+(vendored at `test/fixtures/timesheet.js`) side by side with this one: month
+spans, start offsets, date labels, tuple arity, category defaults and scale
+widening all agree. Upstream's own test vectors are asserted against the fixture
+too, so drift is caught rather than assumed away.
 
-What differs:
+What differs is the surrounding component, not the arithmetic:
 
-- **Year-only end dates.** The single behavioural divergence, opt-out via
-  `bareYearEnd="legacy"`. See [above](#year-only-end-dates).
 - **Date input.** `timesheet.js` accepts `MM/YYYY` and `YYYY` only — it splits
   on `/` and otherwise runs the whole string through `parseInt`, so `'2002-09'`
   silently parses as the bare year 2002. This port accepts `YYYY-MM` and
@@ -192,6 +196,9 @@ What differs:
   carries the same month count the bubble is drawn from.
 - **Semantic markup.** Rows are `<li>` elements in a `<ul>`, and the year scale
   is `aria-hidden` since it duplicates the per-row date labels.
+
+The one arithmetic difference is opt-in: `bareYearEnd="december"`, described
+[above](#year-only-end-dates).
 
 ## Development
 

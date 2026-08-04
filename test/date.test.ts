@@ -107,9 +107,26 @@ describe('getMonthSpan', () => {
     expect(getMonthSpan(parseDate('2002'), parseDate('2002-06'))).toBe(6)
   })
 
-  it('treats a year-only end as running to December', () => {
+  it('stops a year-only end at the start of that year, as timesheet.js does', () => {
+    expect(getMonthSpan(parseDate('2002-01'), parseDate('2004'))).toBe(24)
+    expect(getMonthSpan(parseDate('2002-04'), parseDate('2003'))).toBe(9)
+  })
+
+  it('still runs a same-year year-only end through December', () => {
+    // Upstream's discontinuity: within one year the end year is inclusive.
     expect(getMonthSpan(parseDate('2002-07'), parseDate('2002'))).toBe(6)
-    expect(getMonthSpan(parseDate('2002-01'), parseDate('2004'))).toBe(36)
+  })
+
+  it('runs a year-only end through December in december mode', () => {
+    expect(
+      getMonthSpan(parseDate('2002-01'), parseDate('2004'), 'december')
+    ).toBe(36)
+    expect(
+      getMonthSpan(parseDate('2002-04'), parseDate('2003'), 'december')
+    ).toBe(21)
+    expect(
+      getMonthSpan(parseDate('2002-07'), parseDate('2002'), 'december')
+    ).toBe(6)
   })
 
   it('spans a single month when there is no end date', () => {

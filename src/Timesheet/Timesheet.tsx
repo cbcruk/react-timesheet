@@ -15,7 +15,7 @@ function Timesheet({
   theme = 'dark',
   colors,
   sort = true,
-  bareYearEnd = 'december',
+  bareYearEnd = 'legacy',
   showDates = true,
   onBubbleClick,
   className,

@@ -94,7 +94,7 @@ export function toMonthIndex(date: TimesheetDate): number {
 export function getMonthSpan(
   start: TimesheetDate,
   end: TimesheetDate | null,
-  bareYearEnd: BareYearEnd = 'december'
+  bareYearEnd: BareYearEnd = 'legacy'
 ): number {
   if (!end) {
     return start.hasMonth ? 1 : 12

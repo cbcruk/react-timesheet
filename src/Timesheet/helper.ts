@@ -88,7 +88,7 @@ export interface LayoutOptions {
  */
 export function getBubbles(
   data: TimesheetEntry[],
-  { min, max, sort = true, bareYearEnd = 'december' }: LayoutOptions = {}
+  { min, max, sort = true, bareYearEnd = 'legacy' }: LayoutOptions = {}
 ): TimesheetLayout {
   const entries = data.map(normalizeEntry).map((entry) => ({
     ...entry,

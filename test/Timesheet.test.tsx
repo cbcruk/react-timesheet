@@ -141,11 +141,12 @@ describe('<Timesheet />', () => {
 
     const { getAllByRole, rerender } = render(<Timesheet data={entry} />)
 
-    expect(getAllByRole('listitem')[0]).toHaveAttribute('data-months', '36')
-
-    rerender(<Timesheet data={entry} bareYearEnd="legacy" />)
-
+    // Default matches timesheet.js: the end year is an exclusive boundary.
     expect(getAllByRole('listitem')[0]).toHaveAttribute('data-months', '24')
+
+    rerender(<Timesheet data={entry} bareYearEnd="december" />)
+
+    expect(getAllByRole('listitem')[0]).toHaveAttribute('data-months', '36')
   })
 
   it('exposes stable class names for consumer styling', () => {
