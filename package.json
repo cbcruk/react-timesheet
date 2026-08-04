@@ -8,6 +8,10 @@
     "type": "git",
     "url": "git+https://github.com/cbcruk/react-timesheet.git"
   },
+  "homepage": "https://cbcruk.github.io/react-timesheet/",
+  "bugs": {
+    "url": "https://github.com/cbcruk/react-timesheet/issues"
+  },
   "keywords": [
     "react",
     "timesheet",
