@@ -15,6 +15,7 @@ export { getBubbles, normalizeEntry, DEFAULT_TYPE } from './Timesheet/helper'
 export { COLOR_SCHEMES, THEMES } from './Timesheet/colors'
 
 export type {
+  BareYearEnd,
   Bubble,
   ColorScheme,
   NormalizedEntry,

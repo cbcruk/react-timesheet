@@ -136,6 +136,18 @@ describe('<Timesheet />', () => {
     )
   })
 
+  it('switches year-only end date semantics', () => {
+    const entry: TimesheetEntry[] = [['2002-01', '2004', 'A', 'lorem']]
+
+    const { getAllByRole, rerender } = render(<Timesheet data={entry} />)
+
+    expect(getAllByRole('listitem')[0]).toHaveAttribute('data-months', '36')
+
+    rerender(<Timesheet data={entry} bareYearEnd="legacy" />)
+
+    expect(getAllByRole('listitem')[0]).toHaveAttribute('data-months', '24')
+  })
+
   it('exposes stable class names for consumer styling', () => {
     const { container } = render(<Timesheet data={data} />)
 

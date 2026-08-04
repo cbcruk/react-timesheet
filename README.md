@@ -72,21 +72,38 @@ its start has no month.
 Anything else throws a `TypeError` with the offending value, rather than
 silently rendering a zero width bubble.
 
+### Year-only end dates
+
+A bare end year is the one place this port does not agree with `timesheet.js`,
+and `bareYearEnd` selects which reading you get:
+
+| `['2002-01', '2004', …]` | `bareYearEnd` | Months | Meaning                 |
+| ------------------------ | ------------- | ------ | ----------------------- |
+| default                  | `'december'`  | 36     | through December 2004   |
+| upstream                 | `'legacy'`    | 24     | up to the start of 2004 |
+
+`'legacy'` reproduces `timesheet.js` exactly — including its discontinuity,
+where `['04/2002', '2002']` and `['04/2002', '2003']` both measure 9 months, so
+a bare end year is inclusive within one year but exclusive across years. Both
+readings are locked in by [`test/parity.test.ts`](test/parity.test.ts), which
+runs the upstream implementation and this port against the same inputs.
+
 ## Props
 
-| Prop            | Type                                      | Default     | Description                                                  |
-| --------------- | ----------------------------------------- | ----------- | ------------------------------------------------------------ |
-| `data`          | `TimesheetEntry[]`                        | —           | Entries to render.                                           |
-| `min`           | `number`                                  | from `data` | First year of the scale.                                     |
-| `max`           | `number`                                  | from `data` | Last year of the scale.                                      |
-| `colorScheme`   | `'default' \| 'alternative'`              | `'default'` | Built-in palette.                                            |
-| `theme`         | `'dark' \| 'light'`                       | `'dark'`    | Background and text palette.                                 |
-| `colors`        | `Record<string, string>`                  | —           | Per-category color overrides, e.g. `{ lorem: '#09f' }`.      |
-| `sort`          | `boolean`                                 | `true`      | Sort entries by start date.                                  |
-| `showDates`     | `boolean`                                 | `true`      | Render the date range next to each label.                    |
-| `onBubbleClick` | `(bubble: Bubble, index: number) => void` | —           | Makes each row focusable and clickable.                      |
-| `className`     | `string`                                  | —           | Appended to the root class list.                             |
-| `style`         | `CSSProperties`                           | —           | Merged onto the root, after the generated custom properties. |
+| Prop            | Type                                      | Default      | Description                                                  |
+| --------------- | ----------------------------------------- | ------------ | ------------------------------------------------------------ |
+| `data`          | `TimesheetEntry[]`                        | —            | Entries to render.                                           |
+| `min`           | `number`                                  | from `data`  | First year of the scale.                                     |
+| `max`           | `number`                                  | from `data`  | Last year of the scale.                                      |
+| `colorScheme`   | `'default' \| 'alternative'`              | `'default'`  | Built-in palette.                                            |
+| `theme`         | `'dark' \| 'light'`                       | `'dark'`     | Background and text palette.                                 |
+| `colors`        | `Record<string, string>`                  | —            | Per-category color overrides, e.g. `{ lorem: '#09f' }`.      |
+| `sort`          | `boolean`                                 | `true`       | Sort entries by start date.                                  |
+| `bareYearEnd`   | `'december' \| 'legacy'`                  | `'december'` | How to read a year-only end date. See above.                 |
+| `showDates`     | `boolean`                                 | `true`       | Render the date range next to each label.                    |
+| `onBubbleClick` | `(bubble: Bubble, index: number) => void` | —            | Makes each row focusable and clickable.                      |
+| `className`     | `string`                                  | —            | Appended to the root class list.                             |
+| `style`         | `CSSProperties`                           | —            | Merged onto the root, after the generated custom properties. |
 
 `min` and `max` bound the scale but only ever widen it: an entry outside the
 requested range pushes the range out rather than being clipped. Omit them and
@@ -135,23 +152,44 @@ import { getBubbles, parseDate, getMonthSpan } from 'react-timesheet'
 const { min, max, years, bubbles } = getBubbles(data, { min: 2002 })
 ```
 
-- `getBubbles(data, { min, max, sort })` — the full layout: year range plus
-  positioned bubbles with `offset`/`width` as percentages.
+- `getBubbles(data, { min, max, sort, bareYearEnd })` — the full layout: year
+  range plus positioned bubbles with `offset`/`width` as percentages.
 - `parseDate`, `formatDate`, `formatRange`, `toMonthIndex`
-- `getMonthSpan(start, end)`, `getMonthOffset(date, min)`
+- `getMonthSpan(start, end, bareYearEnd)`, `getMonthOffset(date, min)`
 - `normalizeEntry(entry)`, `COLOR_SCHEMES`, `THEMES`
 
 ## Differences from timesheet.js
 
-- **Responsive.** The original measures a year section in pixels and positions
-  bubbles with pixel offsets, which pins the widget to a fixed width. Here
-  offsets and widths are percentages, so the timesheet fills its container.
+The layout maths is a faithful port. `test/parity.test.ts` runs the upstream
+implementation (vendored at `test/fixtures/timesheet.js`) side by side with this
+one, and month spans, start offsets, date labels, tuple arity, category
+defaults and scale widening all agree exactly. Upstream's own test vectors are
+asserted against the fixture too, so drift is caught rather than assumed away.
+
+What differs:
+
+- **Year-only end dates.** The single behavioural divergence, opt-out via
+  `bareYearEnd="legacy"`. See [above](#year-only-end-dates).
+- **Date input.** `timesheet.js` accepts `MM/YYYY` and `YYYY` only — it splits
+  on `/` and otherwise runs the whole string through `parseInt`, so `'2002-09'`
+  silently parses as the bare year 2002. This port accepts `YYYY-MM` and
+  `YYYY-MM-DD` as well, and throws on anything it cannot read.
+- **`min`/`max` are optional.** Upstream compares against `undefined` when they
+  are omitted, so both are effectively required. Here the range is derived from
+  the data when either is missing.
+- **Responsive.** Upstream measures a year section in pixels
+  (`.scale section` `offsetWidth`) and positions bubbles with pixel offsets,
+  which pins the widget to a fixed width. Here offsets and widths are
+  percentages, so the timesheet fills its container.
 - **No fixed height.** The root grows with the number of entries instead of
   clipping at 292px.
-- **Multi-year ranges ending on a bare year.** `timesheet.js` measures
-  `['2002-01', '2004', …]` as 24 months; it should be 36. A year-only end date
-  is treated here as that year's December, which makes one formula cover every
-  case.
+- **Sorted by default.** Upstream renders in input order; set `sort={false}` for
+  that.
+- **Escaped labels.** Upstream builds rows with `innerHTML +=`, so a label
+  containing markup is injected as HTML. React escapes it.
+- **`data-months` instead of `data-duration`.** Upstream's duration attribute
+  divides a millisecond delta by `24 * 39`, which is not a month; each row here
+  carries the same month count the bubble is drawn from.
 - **Semantic markup.** Rows are `<li>` elements in a `<ul>`, and the year scale
   is `aria-hidden` since it duplicates the per-row date labels.
 

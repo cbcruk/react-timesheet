@@ -70,6 +70,22 @@ export interface TimesheetLayout {
   bubbles: Bubble[]
 }
 
+/**
+ * How to read a year-only end date such as `['2002-01', '2004', 'Label', '']`.
+ *
+ * This is the only place where this port and `timesheet.js` disagree.
+ *
+ * - `'december'` (default) — the end year is inclusive, so the entry runs
+ *   through December 2004 (36 months). A bare year then means the same thing
+ *   wherever it appears: the whole of that year.
+ * - `'legacy'` — reproduces `timesheet.js` exactly, asserted by its own test
+ *   suite: the entry stops at the start of the end year (24 months). Note that
+ *   upstream is discontinuous here — `['04/2002', '2002']` and
+ *   `['04/2002', '2003']` both measure 9 months, so the end year is inclusive
+ *   within a single year and exclusive across years.
+ */
+export type BareYearEnd = 'december' | 'legacy'
+
 export type ColorScheme = 'default' | 'alternative'
 
 export type Theme = 'dark' | 'light'
@@ -89,6 +105,8 @@ export interface Props {
   colors?: Record<string, string>
   /** Sort entries by start date. Defaults to `true`. */
   sort?: boolean
+  /** How to read a year-only end date. Defaults to `'december'`. */
+  bareYearEnd?: BareYearEnd
   /** Render the date range next to each label. Defaults to `true`. */
   showDates?: boolean
   /** Called when an entry is clicked or activated with the keyboard. */

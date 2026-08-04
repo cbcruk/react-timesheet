@@ -2,3 +2,6 @@ dist
 coverage
 node_modules
 package-lock.json
+
+# Vendored upstream source, kept byte-faithful for the parity test.
+test/fixtures

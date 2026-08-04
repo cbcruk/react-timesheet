@@ -1,4 +1,4 @@
-import { TimesheetDate } from './types'
+import { BareYearEnd, TimesheetDate } from './types'
 
 const YEAR = /^(\d{4})$/
 const YEAR_FIRST = /^(\d{4})[-/.](\d{1,2})(?:[-/.]\d{1,2})?$/
@@ -80,29 +80,36 @@ export function toMonthIndex(date: TimesheetDate): number {
 }
 
 /**
- * Number of months an entry covers, following `timesheet.js` semantics:
+ * Number of months an entry covers.
+ *
+ * Shared with `timesheet.js` in every case:
  *
  * - no end date: one month, or a full year when the start has no month
  * - year-only start: begins in January
- * - year-only end: runs through December
  * - both ends are inclusive
  *
- * `timesheet.js` handles a year-only end date with a separate branch that drops
- * a year for multi-year ranges (`2002-01` to `2004` measures 24 months instead
- * of 36). Treating a bare end year as its December makes one formula cover
- * every case and fixes that off-by-a-year.
+ * The one case where the two disagree is a year-only *end* date, which
+ * `bareYearEnd` selects between. See {@link BareYearEnd}.
  */
 export function getMonthSpan(
   start: TimesheetDate,
-  end: TimesheetDate | null
+  end: TimesheetDate | null,
+  bareYearEnd: BareYearEnd = 'december'
 ): number {
   if (!end) {
     return start.hasMonth ? 1 : 12
   }
 
   const startMonth = start.hasMonth ? start.month : 0
-  const endMonth = end.hasMonth ? end.month : 11
   const fullYears = end.year - start.year
+
+  if (!end.hasMonth && bareYearEnd === 'legacy') {
+    // Verbatim from timesheet.js, including the discontinuity at fullYears 0:
+    // '04/2002'-'2002' and '04/2002'-'2003' both measure 9 months.
+    return Math.max(12 - startMonth + 12 * Math.max(fullYears - 1, 0), 1)
+  }
+
+  const endMonth = end.hasMonth ? end.month : 11
   const months = endMonth + 1 + (12 - startMonth) + 12 * (fullYears - 1)
 
   return Math.max(months, 1)

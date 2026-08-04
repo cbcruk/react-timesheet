@@ -15,14 +15,15 @@ function Timesheet({
   theme = 'dark',
   colors,
   sort = true,
+  bareYearEnd = 'december',
   showDates = true,
   onBubbleClick,
   className,
   style,
 }: Props) {
   const { years, bubbles } = useMemo(
-    () => getBubbles(data, { min, max, sort }),
-    [data, min, max, sort]
+    () => getBubbles(data, { min, max, sort, bareYearEnd }),
+    [data, min, max, sort, bareYearEnd]
   )
 
   const variables = useMemo(

@@ -6,6 +6,7 @@ import {
   toMonthIndex,
 } from './date'
 import {
+  BareYearEnd,
   Bubble,
   NormalizedEntry,
   TimesheetEntry,
@@ -75,6 +76,7 @@ export interface LayoutOptions {
   min?: number
   max?: number
   sort?: boolean
+  bareYearEnd?: BareYearEnd
 }
 
 /**
@@ -86,7 +88,7 @@ export interface LayoutOptions {
  */
 export function getBubbles(
   data: TimesheetEntry[],
-  { min, max, sort = true }: LayoutOptions = {}
+  { min, max, sort = true, bareYearEnd = 'december' }: LayoutOptions = {}
 ): TimesheetLayout {
   const entries = data.map(normalizeEntry).map((entry) => ({
     ...entry,
@@ -129,7 +131,7 @@ export function getBubbles(
 
   const bubbles: Bubble[] = ordered.map(
     ({ label, type, startDate, endDate }) => {
-      const span = getMonthSpan(startDate, endDate)
+      const span = getMonthSpan(startDate, endDate, bareYearEnd)
 
       return {
         label,
