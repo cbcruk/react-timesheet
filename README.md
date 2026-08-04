@@ -3,6 +3,8 @@
 A React implementation of [timesheet.js](https://github.com/sbstjn/timesheet.js) —
 render a compact HTML timeline from a list of dated events.
 
+**[Live playground →](https://cbcruk.github.io/react-timesheet/)**
+
 ```tsx
 import Timesheet from 'react-timesheet'
 
@@ -233,6 +235,11 @@ npm test           # Vitest
 npm run lint       # Prettier + tsc
 npm run build      # tsup, ESM + CJS + types
 ```
+
+`.github/workflows/pages.yml` builds the playground and publishes it to GitHub
+Pages on every push to `master`. Assets are referenced relatively, so the same
+build works from a local preview and from the `/react-timesheet/` path Pages
+serves it under.
 
 ## License
 
