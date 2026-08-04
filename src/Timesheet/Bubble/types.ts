@@ -1,8 +1,7 @@
+import { Bubble } from '../types'
+
 export interface Props {
-  type: string
-  label: string
-  start: string
-  end: string
-  width: number
-  offset: number
+  bubble: Bubble
+  showDates?: boolean
+  onClick?: () => void
 }

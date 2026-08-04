@@ -1,10 +1,15 @@
-import { css } from 'emotion'
+import { css } from '@emotion/css'
+import { themeVar } from '../colors'
+
+export const LIST_CLASS = 'react-timesheet__data'
 
 export const wrapper = css`
+  position: relative;
   overflow: hidden;
-  padding: 0;
-  margin-top: 28px;
+  margin: 0;
+  padding: 28px 0 0 0;
+  list-style: none;
   text-align: left;
-  color: rgba(250, 250, 250, 0.8);
+  color: var(${themeVar('scale')});
   font-size: 13px;
 `

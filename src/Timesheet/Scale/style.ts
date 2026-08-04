@@ -1,4 +1,8 @@
-import { css } from 'emotion'
+import { css } from '@emotion/css'
+import { themeVar } from '../colors'
+
+export const SCALE_CLASS = 'react-timesheet__scale'
+export const SECTION_CLASS = 'react-timesheet__year'
 
 export const wrapper = css`
   position: absolute;
@@ -7,15 +11,17 @@ export const wrapper = css`
   display: flex;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 `
 
 export const section = css`
-  flex: 1;
-  border-left: 1px dashed rgba(250, 250, 250, 0.2);
+  flex: 1 1 0;
+  box-sizing: border-box;
+  height: 100%;
+  border-left: 1px dashed var(${themeVar('scale-line')});
   text-align: center;
-  color: rgba(250, 250, 250, 0.8);
+  color: var(${themeVar('scale')});
   font-size: 13px;
   line-height: 24px;
-  font-weight: lighter;
-  height: 100%;
+  font-weight: 300;
 `

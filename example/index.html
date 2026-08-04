@@ -1,14 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Playground</title>
+    <title>react-timesheet playground</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;600&display=swap"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        padding: 40px 20px;
+        background-color: #1c1c1c;
+        color: #fafafa;
+        font-family:
+          'Signika Negative',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      p.lead {
+        margin: 0 0 28px;
+        color: rgba(250, 250, 250, 0.6);
+        font-size: 14px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .controls label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(250, 250, 250, 0.75);
+      }
+
+      .controls select {
+        padding: 4px 6px;
+        border: 1px solid rgba(250, 250, 250, 0.25);
+        border-radius: 4px;
+        background: #2a2a2a;
+        color: inherit;
+        font: inherit;
+      }
+
+      .selection {
+        min-height: 21px;
+        margin-top: 16px;
+        color: rgba(250, 250, 250, 0.6);
+        font-size: 14px;
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
-    <script src="./index.tsx"></script>
+    <script type="module" src="./main.tsx"></script>
   </body>
 </html>
